@@ -26,9 +26,23 @@ jobs:
           cache: maven
 
       - name: Build and test backend
-        run: mvn --batch-mode verify
+        shell: bash
+        run: |
+          set +e
+          mvn --batch-mode verify 2>&1 | tee /tmp/maven-build.log
+          STATUS=${PIPESTATUS[0]}
 
-      - name: Upload backend test reports
+          if [ "$STATUS" -ne 0 ]; then
+            echo
+            echo "========== IMPORTANT MAVEN ERRORS =========="
+            grep -nE \
+              "COMPILATION ERROR|Compilation failure|Tests run:|Failures:|Errors:|\[ERROR\].*\.java:\[" \
+              /tmp/maven-build.log | head -80 || true
+            echo "============================================="
+            exit "$STATUS"
+          fi
+
+      - name: Upload backend reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -51,11 +65,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Build web application
         run: npm run build
