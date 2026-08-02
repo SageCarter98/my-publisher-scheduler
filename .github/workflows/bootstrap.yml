@@ -1,0 +1,89 @@
+name: Bootstrap MPS source
+
+on:
+  push:
+    paths:
+      - my-publisher-scheduler-v1.0.0-rc2.zip
+      - .github/workflows/bootstrap.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate archive paths
+        run: |
+          python3 - <<'PY'
+          from pathlib import PurePosixPath
+          from zipfile import ZipFile
+
+          archive = "my-publisher-scheduler-v1.0.0-rc2.zip"
+
+          with ZipFile(archive) as package:
+              for name in package.namelist():
+                  path = PurePosixPath(name)
+                  if path.is_absolute() or ".." in path.parts:
+                      raise SystemExit(f"Unsafe archive path: {name}")
+
+          print("Archive paths are safe.")
+          PY
+
+      - name: Extract project
+        run: |
+          rm -rf /tmp/mps-unpack
+          mkdir -p /tmp/mps-unpack
+          unzip -q my-publisher-scheduler-v1.0.0-rc2.zip -d /tmp/mps-unpack
+
+          test -f /tmp/mps-unpack/mps_v1_release/backend/pom.xml
+          test -f /tmp/mps-unpack/mps_v1_release/web/package.json
+
+          cp -a /tmp/mps-unpack/mps_v1_release/. .
+          rm -f my-publisher-scheduler-v1.0.0-rc2.zip
+          rm -f .github/workflows/bootstrap.yml
+
+      - name: Enable manual CI execution
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          workflow = Path(".github/workflows/ci.yml")
+          text = workflow.read_text()
+
+          text = text.replace(
+              "on: [push, pull_request]",
+              "on: [push, pull_request, workflow_dispatch]",
+          )
+
+          workflow.write_text(text)
+          PY
+
+      - name: Commit extracted source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          git commit -m "Import MPS 1.0.0-rc2 source"
+          git push origin HEAD:main
+
+      - name: Start the main CI workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if gh workflow view ci.yml >/dev/null 2>&1; then
+              gh workflow run ci.yml --ref main
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "Source was imported, but CI must be started manually."
