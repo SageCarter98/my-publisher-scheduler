@@ -1,0 +1,1 @@
+package com.mps.operations.repository; import com.mps.operations.model.BackupJob; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface BackupJobRepository extends JpaRepository<BackupJob,UUID>{List<BackupJob> findTop50ByOrganizationIdOrderByRequestedAtDesc(UUID organizationId);}

@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?required}
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    volumes: ["mps-db:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      MPS_JWT_SECRET: ${MPS_JWT_SECRET:?required}
+      MPS_JWT_ISSUER: ${MPS_JWT_ISSUER:-mps}
+      MPS_JWT_ACCESS_MINUTES: ${MPS_JWT_ACCESS_MINUTES:-15}
+      MPS_JWT_REFRESH_DAYS: ${MPS_JWT_REFRESH_DAYS:-14}
+      MPS_BOOTSTRAP_ENABLED: ${MPS_BOOTSTRAP_ENABLED:-false}
+      MPS_BOOTSTRAP_ORGANIZATION: ${MPS_BOOTSTRAP_ORGANIZATION:-My Publisher Scheduler}
+      MPS_BOOTSTRAP_ADMIN_EMAIL: ${MPS_BOOTSTRAP_ADMIN_EMAIL:-admin@example.org}
+      MPS_BOOTSTRAP_ADMIN_PASSWORD: ${MPS_BOOTSTRAP_ADMIN_PASSWORD:-replace-before-enabling-bootstrap}
+      MPS_DOCUMENTS_PATH: /data/documents
+      MPS_BACKUPS_PATH: /data/backups
+    volumes: ["mps-documents:/data/documents", "mps-backups:/data/backups"]
+    read_only: true
+    tmpfs: ["/tmp"]
+    security_opt: ["no-new-privileges:true"]
+  web:
+    build: ./web
+    restart: unless-stopped
+    depends_on: [backend]
+    ports: ["${MPS_HTTP_PORT:-8088}:80"]
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  mps-db:
+  mps-documents:
+  mps-backups:

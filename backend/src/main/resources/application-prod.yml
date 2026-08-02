@@ -1,0 +1,39 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: ${MPS_MAX_FILE_SIZE:10MB}
+      max-request-size: ${MPS_MAX_REQUEST_SIZE:11MB}
+server:
+  shutdown: graceful
+  forward-headers-strategy: framework
+  error:
+    include-message: never
+    include-stacktrace: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+mps:
+  security:
+    login-rate-limit:
+      max-attempts: ${MPS_LOGIN_RATE_MAX:10}
+      window-seconds: ${MPS_LOGIN_RATE_WINDOW:60}
+logging:
+  pattern:
+    level: "%5p [correlationId=%X{correlationId:-none}]"

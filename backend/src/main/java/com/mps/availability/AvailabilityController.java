@@ -1,0 +1,6 @@
+package com.mps.availability;
+import com.mps.auth.security.UserPrincipal; import com.mps.availability.dto.AvailabilityDtos.*; import com.mps.availability.service.AvailabilityService; import com.mps.common.ApiResponse; import jakarta.validation.Valid; import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.web.bind.annotation.*; import java.time.Instant; import java.util.*;
+@RestController @RequestMapping("/api/v1/availability") public class AvailabilityController { private final AvailabilityService service; public AvailabilityController(AvailabilityService s){service=s;}
+ @GetMapping("/me") @PreAuthorize("hasAuthority('availability.manage_self')") public ApiResponse<List<AvailabilityView>> list(@AuthenticationPrincipal UserPrincipal p,@RequestParam Instant from,@RequestParam Instant to){return ApiResponse.ok("Availability loaded.",service.list(p,from,to));}
+ @PostMapping("/me") @PreAuthorize("hasAuthority('availability.manage_self')") public ApiResponse<AvailabilityView> create(@AuthenticationPrincipal UserPrincipal p,@Valid @RequestBody CreateAvailabilityRequest r){return ApiResponse.ok("Availability saved.",service.create(p,r));}
+}

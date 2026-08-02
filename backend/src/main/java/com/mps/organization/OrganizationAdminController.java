@@ -1,0 +1,17 @@
+package com.mps.organization;
+import com.mps.auth.security.UserPrincipal; import com.mps.common.ApiResponse; import com.mps.organization.dto.OrganizationDtos.*; import com.mps.organization.service.OrganizationAdminService;
+import jakarta.validation.Valid; import org.springframework.http.ResponseEntity; import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.web.bind.annotation.*;
+import java.util.List; import java.util.UUID;
+@RestController @RequestMapping("/api/v1") public class OrganizationAdminController {
+ private final OrganizationAdminService service; public OrganizationAdminController(OrganizationAdminService service){this.service=service;}
+ @GetMapping("/organization") @PreAuthorize("hasAuthority('organization.read')") public ApiResponse<OrganizationView> get(@AuthenticationPrincipal UserPrincipal p){return ApiResponse.ok("Organization loaded.",service.get(p));}
+ @PutMapping("/organization") @PreAuthorize("hasAuthority('organization.manage')") public ApiResponse<OrganizationView> update(@AuthenticationPrincipal UserPrincipal p,@Valid @RequestBody UpdateOrganizationRequest r){return ApiResponse.ok("Organization updated.",service.update(p,r));}
+ @GetMapping("/departments") @PreAuthorize("hasAuthority('organization.read')") public ApiResponse<List<UnitView>> departments(@AuthenticationPrincipal UserPrincipal p){return ApiResponse.ok("Departments loaded.",service.departments(p));}
+ @PostMapping("/departments") @PreAuthorize("hasAuthority('organization.manage')") public ApiResponse<UnitView> createDepartment(@AuthenticationPrincipal UserPrincipal p,@Valid @RequestBody UnitRequest r){return ApiResponse.ok("Department created.",service.createDepartment(p,r));}
+ @PutMapping("/departments/{id}") @PreAuthorize("hasAuthority('organization.manage')") public ApiResponse<UnitView> updateDepartment(@AuthenticationPrincipal UserPrincipal p,@PathVariable UUID id,@Valid @RequestBody UnitRequest r){return ApiResponse.ok("Department updated.",service.updateDepartment(p,id,r));}
+ @DeleteMapping("/departments/{id}") @PreAuthorize("hasAuthority('organization.manage')") public ResponseEntity<Void> archiveDepartment(@AuthenticationPrincipal UserPrincipal p,@PathVariable UUID id){service.archiveDepartment(p,id);return ResponseEntity.noContent().build();}
+ @GetMapping("/groups") @PreAuthorize("hasAuthority('organization.read')") public ApiResponse<List<UnitView>> groups(@AuthenticationPrincipal UserPrincipal p){return ApiResponse.ok("Groups loaded.",service.groups(p));}
+ @PostMapping("/groups") @PreAuthorize("hasAuthority('organization.manage')") public ApiResponse<UnitView> createGroup(@AuthenticationPrincipal UserPrincipal p,@Valid @RequestBody UnitRequest r){return ApiResponse.ok("Group created.",service.createGroup(p,r));}
+ @PutMapping("/groups/{id}") @PreAuthorize("hasAuthority('organization.manage')") public ApiResponse<UnitView> updateGroup(@AuthenticationPrincipal UserPrincipal p,@PathVariable UUID id,@Valid @RequestBody UnitRequest r){return ApiResponse.ok("Group updated.",service.updateGroup(p,id,r));}
+ @DeleteMapping("/groups/{id}") @PreAuthorize("hasAuthority('organization.manage')") public ResponseEntity<Void> archiveGroup(@AuthenticationPrincipal UserPrincipal p,@PathVariable UUID id){service.archiveGroup(p,id);return ResponseEntity.noContent().build();}
+}

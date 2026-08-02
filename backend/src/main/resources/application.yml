@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: mps-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mps}
+    username: ${SPRING_DATASOURCE_USERNAME:mps}
+    password: ${SPRING_DATASOURCE_PASSWORD:change-me}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+server:
+  port: 8080
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+mps:
+  security:
+    jwt:
+      secret: ${MPS_JWT_SECRET:replace-this-development-secret-with-at-least-32-bytes}
+      issuer: ${MPS_JWT_ISSUER:mps}
+      access-minutes: ${MPS_JWT_ACCESS_MINUTES:15}
+      refresh-days: ${MPS_JWT_REFRESH_DAYS:14}
+    lockout:
+      max-attempts: ${MPS_LOCKOUT_MAX_ATTEMPTS:5}
+      minutes: ${MPS_LOCKOUT_MINUTES:15}
+  bootstrap:
+    enabled: ${MPS_BOOTSTRAP_ENABLED:false}
+    organization-name: ${MPS_BOOTSTRAP_ORGANIZATION:My Publisher Scheduler Demo}
+    admin-email: ${MPS_BOOTSTRAP_ADMIN_EMAIL:admin@mps.local}
+    admin-password: ${MPS_BOOTSTRAP_ADMIN_PASSWORD:ChangeThisPassword123!}
+  storage:
+    documents-path: ${MPS_DOCUMENTS_PATH:./data/documents}
+  operations:
+    backups-path: ${MPS_BACKUPS_PATH:./data/backups}

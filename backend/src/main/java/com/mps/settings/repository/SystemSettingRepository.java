@@ -1,0 +1,2 @@
+package com.mps.settings.repository; import com.mps.settings.model.SystemSetting; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*;
+public interface SystemSettingRepository extends JpaRepository<SystemSetting,UUID>{List<SystemSetting> findByOrganizationIdOrderByKey(UUID organizationId); Optional<SystemSetting> findByOrganizationIdAndKey(UUID organizationId,String key);}

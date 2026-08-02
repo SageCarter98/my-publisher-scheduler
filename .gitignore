@@ -1,0 +1,10 @@
+.env
+.idea/
+.vscode/
+.DS_Store
+**/target/
+**/build/
+**/.dart_tool/
+**/node_modules/
+**/dist/
+*.log
