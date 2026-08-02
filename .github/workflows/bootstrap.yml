@@ -45,11 +45,10 @@ jobs:
           test -f /tmp/mps-unpack/mps_v1_release/backend/pom.xml
           test -f /tmp/mps-unpack/mps_v1_release/web/package.json
 
+          rm -rf /tmp/mps-unpack/mps_v1_release/.github
           cp -a /tmp/mps-unpack/mps_v1_release/. .
           rm -f my-publisher-scheduler-v1.0.0-rc2.zip
-          rm -f .github/workflows/bootstrap.yml
 
-      - name: Enable manual CI execution
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -74,7 +73,6 @@ jobs:
           git commit -m "Import MPS 1.0.0-rc2 source"
           git push origin HEAD:main
 
-      - name: Start the main CI workflow
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
