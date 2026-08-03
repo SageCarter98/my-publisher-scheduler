@@ -77,6 +77,7 @@ jobs:
           path: |
             backend/target/surefire-reports/**
             backend/target/site/jacoco/**
+            /tmp/maven-build.log
           if-no-files-found: ignore
 
   web:
