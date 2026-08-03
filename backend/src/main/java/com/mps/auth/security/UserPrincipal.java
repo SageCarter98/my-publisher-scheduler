@@ -82,6 +82,10 @@ public final class UserPrincipal implements UserDetails {
         return enabled;
     }
 
+    public Collection<? extends GrantedAuthority> authorities() {
+        return authorities;
+    }
+
     @Override
     public String getUsername() {
         return email;
