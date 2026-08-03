@@ -51,4 +51,6 @@ The production reverse proxy listens on `${MPS_HTTP_PORT:-8088}`.
 
 ## Release status
 
-This repository is a **release candidate**. It is not evidence that external CI, container builds, staging migrations, security scans, performance tests, restore tests, accessibility reviews, or UAT have passed. Complete the checklists under `docs/` before production approval.
+This repository is a **release candidate**. It is not evidence that external CI, container builds, staging migrations, security scans, performance tests, restore tests, accessibility reviews, or U[...] 
+
+CI: retrigger commit to run workflow
