@@ -11,14 +11,30 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public record UserPrincipal(
-        UUID userId,
-        UUID organizationId,
-        String email,
-        String password,
-        boolean enabled,
-        Collection<? extends GrantedAuthority> authorities
-) implements UserDetails {
+public final class UserPrincipal implements UserDetails {
+
+    private final UUID userId;
+    private final UUID organizationId;
+    private final String email;
+    private final String password;
+    private final boolean enabled;
+    private final Collection<? extends GrantedAuthority> authorities;
+
+    public UserPrincipal(
+            UUID userId,
+            UUID organizationId,
+            String email,
+            String password,
+            boolean enabled,
+            Collection<? extends GrantedAuthority> authorities
+    ) {
+        this.userId = userId;
+        this.organizationId = organizationId;
+        this.email = email;
+        this.password = password;
+        this.enabled = enabled;
+        this.authorities = authorities;
+    }
 
     public static UserPrincipal from(AppUser user) {
         Set<GrantedAuthority> resolvedAuthorities =
@@ -48,6 +64,22 @@ public record UserPrincipal(
                 user.getStatus() == UserStatus.ACTIVE,
                 resolvedAuthorities
         );
+    }
+
+    public UUID userId() {
+        return userId;
+    }
+
+    public UUID organizationId() {
+        return organizationId;
+    }
+
+    public String email() {
+        return email;
+    }
+
+    public boolean enabled() {
+        return enabled;
     }
 
     @Override
