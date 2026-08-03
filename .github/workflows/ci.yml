@@ -17,28 +17,55 @@ jobs:
         working-directory: backend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
+      - name: Verify checked-out UserPrincipal
+        working-directory: .
+        run: |
+          echo "Commit checked out:"
+          git rev-parse HEAD
+
+          echo "UserPrincipal definition:"
+          grep -nE "class UserPrincipal|record UserPrincipal|getPassword|getAuthorities" \
+            backend/src/main/java/com/mps/auth/security/UserPrincipal.java
+
+          echo "File checksum:"
+          sha256sum \
+            backend/src/main/java/com/mps/auth/security/UserPrincipal.java
+
       - name: Build and test backend
         shell: bash
         run: |
           set +e
-          mvn --batch-mode verify 2>&1 | tee /tmp/maven-build.log
+
+          mvn --batch-mode clean verify 2>&1 | tee /tmp/maven-build.log
           STATUS=${PIPESTATUS[0]}
 
           if [ "$STATUS" -ne 0 ]; then
             echo
             echo "========== IMPORTANT MAVEN ERRORS =========="
+
             grep -nE \
               "COMPILATION ERROR|Compilation failure|Tests run:|Failures:|Errors:|\[ERROR\].*\.java:\[" \
-              /tmp/maven-build.log | head -80 || true
-            echo "============================================="
+              /tmp/maven-build.log | head -120 || true
+
+            echo
+            echo "========== USER PRINCIPAL SOURCE =========="
+
+            sed -n '1,180p' \
+              src/main/java/com/mps/auth/security/UserPrincipal.java || true
+
+            echo
+            echo "==========================================="
+
             exit "$STATUS"
           fi
 
@@ -60,9 +87,11 @@ jobs:
         working-directory: web
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "22"
 
@@ -77,12 +106,14 @@ jobs:
 
   containers:
     runs-on: ubuntu-latest
+
     needs:
       - backend
       - web
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
       - name: Validate production compose file
         run: docker compose -f docker-compose.prod.yml config
